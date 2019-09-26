@@ -9,5 +9,6 @@ test_that("Export to feather", {
 test_that("Import from feather", {
     skip_if_not_installed(pkg="feather")
     expect_true(is.data.frame(import("iris.feather")))
+    expect_identical(import("iris.feather"), import_mapper("iris.feather"))
 })
 unlink("iris.feather")

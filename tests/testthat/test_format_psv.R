@@ -7,6 +7,7 @@ test_that("Export to PSV", {
 
 test_that("Import from TSV", {
     expect_true(is.data.frame(import("iris.psv")))
+    #expect_identical(import("iris.psv"), import_mapper("iris.psv"))
 })
 
 unlink("iris.psv")

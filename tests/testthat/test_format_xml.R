@@ -7,6 +7,7 @@ test_that("Export to XML", {
 
 test_that("Import from XML", {
     expect_true(is.data.frame(import("iris.xml")))
+    #expect_identical(import("iris.xml"), import_mapper("iris.xml"))
 })
 
 unlink("iris.xml")

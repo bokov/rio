@@ -10,5 +10,6 @@ test_that("Import from matlab", {
     skip_if_not_installed(pkg="rmatio")
     expect_true(is.data.frame(import("iris.matlab")))
     expect_true(identical(dim(import("iris.matlab")), dim(iris)))
+    expect_identical(import("iris.matlab"), import_mapper("iris.matlab"))
 })
 unlink("iris.matlab")

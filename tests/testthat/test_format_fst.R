@@ -9,5 +9,6 @@ test_that("Export to fst", {
 test_that("Import from fst", {
     skip_if_not_installed(pkg="fst")
     expect_true(is.data.frame(import("iris.fst")))
+    expect_identical(import("iris.fst"), import_mapper("iris.fst"))
 })
 unlink("iris.fst")

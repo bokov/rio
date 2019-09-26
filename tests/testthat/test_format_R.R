@@ -7,6 +7,7 @@ test_that("Export to .R dump file", {
 
 test_that("Import from .R dump file", {
     expect_true(is.data.frame(import("iris.R")))
+    expect_identical(import("iris.R"), import_mapper("iris.R"))
 })
 
 unlink("iris.R")

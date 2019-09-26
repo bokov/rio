@@ -9,4 +9,9 @@ test_that("Import from Weka", {
     expect_true(is.data.frame(import("iris.arff")))
 })
 
+test_that("Import from Weka", {
+  expect_true(is.data.frame(import("iris.arff")))
+  expect_identical(import('iris.arff'),import_mapper('iris.arff'))
+})
+
 unlink("iris.arff")

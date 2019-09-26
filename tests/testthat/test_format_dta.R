@@ -8,12 +8,19 @@ test_that("Export to Stata", {
 
 test_that("Import from Stata (read_dta)", {
     expect_true(is.data.frame(import("mtcars.dta", haven = TRUE)))
+    expect_identical(import("mtcars.dta", haven = TRUE),
+                     import_mapper("mtcars.dta"),
+                     label="import_mapper() replicates import()")
     # arguments ignored
     expect_warning(is.data.frame(import("mtcars.dta", haven = TRUE, extraneous.argument = TRUE)))
 })
 
 test_that("Import from Stata (read.dta)", {
-    expect_true(is.data.frame(import("http://www.stata-press.com/data/r12/auto.dta", haven = FALSE)))
+    expect_true(is.data.frame(dd <- import("http://www.stata-press.com/data/r12/auto.dta", 
+                                           haven = FALSE)))
+    expect_identical(dd, import_mapper("http://www.stata-press.com/data/r12/auto.dta",
+                                       .whichreader = 'foreign'),
+                     label = "import_mapper() replicates import()")
     expect_error(is.data.frame(import("mtcars.dta", haven = FALSE)), label = "foreign::read.dta cannot read newer Stata files")
 })
 

@@ -10,7 +10,7 @@
 #'                 `FALSE` then returns the "non text" bytes found in the file.
 #'
 #' @return boolean or raw
-#'
+#' @export
 #' @examples
 #' library(datasets)
 #' export(iris,"iris.yml")

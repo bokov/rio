@@ -2,6 +2,7 @@
 
  * Additional pointers were added to indicate how to load .doc, .docx, and .pdf files (#210, h/t Bill Denney)
  * Ensure that tests only run if the corresponding package is installed.  (h/t Bill Denney)
+ * Tested against R v4.0
 
 # rio 0.5.19
 

@@ -23,6 +23,7 @@ environment:
 
   - R_VERSION: devel
     R_ARCH: x64
+    PKGTYPE: source
     GCC_PATH: mingw_64
 
   - R_VERSION: devel

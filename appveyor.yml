@@ -33,6 +33,7 @@ matrix:
 
 build_script:
   - travis-tool.sh install_deps
+  - Rscript -e 'remotes::install_deps(dependencies = TRUE, upgrade="never", type="source")'
 
 test_script:
   - travis-tool.sh run_tests

@@ -1,6 +1,7 @@
 language: r
+sudo: false
 cache: packages
-jobs:
+matrix:
   include:
     - os: linux
       r: oldrel
@@ -13,9 +14,16 @@ jobs:
       env: R_CODECOV=true
     - stage: precache
       os: osx
+      osx_image: xcode8.3
       script: true
     - stage: osxdeathmarch
       os: osx
+      osx_image: xcode8.3
+#before_install:
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install llvm &&
+#    export PATH="/usr/local/opt/llvm/bin:$PATH" &&
+#    export LDFLAGS="-L/usr/local/opt/llvm/lib" &&
+#    export CFLAGS="-I/usr/local/opt/llvm/include"; fi
 r_packages:
 - covr
 after_success:

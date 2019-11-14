@@ -2,6 +2,8 @@
 
  * Additional pointers were added to indicate how to load .doc, .docx, and .pdf files (#210, h/t Bill Denney)
  * Ensure that tests only run if the corresponding package is installed.  (h/t Bill Denney)
+ * `arg_reconcile()` lets a global set of arguments to be adjusted to files with varying argument names such that unsupported
+   arguments are either re-mapped or filtered out (#236, Alex Bokov)
 
 # rio 0.5.19
 

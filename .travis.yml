@@ -11,7 +11,11 @@ jobs:
     - os: linux
       dist: trusty
       env: R_CODECOV=true
-    - os: osx
+    - stage: precache
+      os: osx
+      script: true
+    - stage: osxdeathmarch
+      os: osx
 r_packages:
 - covr
 after_success:

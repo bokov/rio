@@ -2,6 +2,7 @@
 
  * Additional pointers were added to indicate how to load .doc, .docx, and .pdf files (#210, h/t Bill Denney)
  * Ensure that tests only run if the corresponding package is installed.  (h/t Bill Denney)
+ * New `isfiletext()` function to determine whether a file is text-mode or binary. Works on Linux, Windows, and MacOS. Will be helpful for catching incorrect file extensions (e.g. .csv instead of .xlsx). (#236, Alex Bokov)
 
 # rio 0.5.19
 

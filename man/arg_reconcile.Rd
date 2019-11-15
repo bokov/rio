@@ -9,8 +9,12 @@ arg_reconcile(
   ...,
   .args = alist(),
   .docall = FALSE,
+  .wtlist = c(),
+  .bklist = c(),
   .remap = list(),
-  .warn = TRUE
+  .warn = TRUE,
+  .doerr = "default",
+  .finish = identity
 )
 }
 \arguments{
@@ -26,12 +30,30 @@ with \code{...}}
 also execute \code{fn} with those arguments (\code{FALSE} by
 default)}
 
+\item{.wtlist}{Whitelist. If not empty, only arguments named here will be 
+permitted, and only if they satisfy the conditions implied by
+the other arguments. Evaluated before \code{remap}.}
+
+\item{.bklist}{Blacklist. If not empty, arguments named here will be removed 
+even if they satisfy the conditions implied by the other 
+arguments. Evaluated before \code{.remap}.}
+
 \item{.remap}{An optional named character vector or named list of character 
 values for standardizing arguments that play the same role but
-have different names in different functions.}
+have different names in different functions. Evaluated after
+\code{.bklist} and \code{.wtlist}.}
 
 \item{.warn}{Whether to issue a warning message (default) when invalid 
 arguments need to be discarded.}
+
+\item{.finish}{A function to run on the result before returning it. Ignored 
+if \code{.docall} is \code{FALSE}.}
+
+\item{.error}{If specified, should be the object to return in the event of
+error. This object will have the error as its 
+\code{error} attribute. If not specified an ordinary error is
+thrown with an added hint on the documentation to read for 
+troubleshooting. Ignored if \code{.docall} is \code{FALSE}.}
 }
 \value{
 Either a named list or the result of calling \code{fn} with the 

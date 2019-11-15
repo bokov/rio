@@ -1,78 +1,110 @@
 context("Reconcile user-supplied arguments with target function's call signature")
 require("datasets")
 require("tools")
+require("tibble")
+require("utils")
+require("data.table")
 
-sharedargs <- alist(x=iris,sep="\t",fileEncoding="UTF-8",showProgress=FALSE,
-                    compress=FALSE)
+sharedargs <- alist(file="iris.tsv",x=iris,sep="\t",fileEncoding="UTF-8",
+                    showProgress=FALSE,skip=2,n_max=4,stringsAsFactors=TRUE)
+
+fwrite_args0 <- alist(file="iris.tsv",x=iris,sep="\t",showProgress=FALSE)
+writetable_args0 <- alist(file="iris.tsv",x=iris,sep="\t",fileEncoding="UTF-8")
+dta_args0 <- alist(data=iris,path="iris.dta")
+sav_args0 <- alist(data=iris,path="iris.sav")
+iris <- setNames(iris,sub('.','',names(iris),fixed = TRUE))
+export(iris,"iris_ref.tsv")
+export(iris,"iris_ref.dta")
+export(iris,"iris_ref.sav")
+
+test_that("hardcoded reference arguments are valid",{
+  expect_silent(do.call(fwrite,fwrite_args0))
+  expect_silent(do.call(haven::write_dta,dta_args0))
+})
 
 test_that("warn on mismatched args and filter them out",{
-  expect_warning(fwrite_args0 <- arg_reconcile(fwrite,fileEncoding="UTF-8",
-                                               showProgress=FALSE,x=iris,
-                                               compress=FALSE,file="iris.tsv",
-                                               sep="\t"),
-                 "fileEncoding")
-  expect_identical(fwrite_args0,alist(showProgress=FALSE,x=iris,compress=FALSE,
-                                      file="iris.tsv",sep="\t"))
-  
-  expect_warning(writetable_args0 <- arg_reconcile(write.table,
-                                                  fileEncoding="UTF-8",
-                                                  showProgress=FALSE,
-                                                  x=iris,compress=FALSE,
-                                                  file="iris.tsv",sep="\t"),
-                 "showProgress")
-  expect_identical(writetable_args0,alist(fileEncoding="UTF-8",x=iris,
-                                         file="iris.tsv",sep="\t"))
+  expect_warning(arg_reconcile(fwrite,file="iris.tsv",x=iris,sep="\t",
+                               fileEncoding="UTF-8",showProgress=FALSE,
+                               skip=2,n_max=4),"fileEncoding")
+  expect_warning(arg_reconcile(write.table,file="iris.tsv",x=iris,sep="\t",
+                               fileEncoding="UTF-8",showProgress=FALSE,
+                               skip=2,n_max=4),"showProgress")
+  expect_warning(arg_reconcile(fwrite,.args=sharedargs),"fileEncoding")
+  expect_warning(arg_reconcile(write.table,.args=sharedargs),"showProgress")
+})
 
-  expect_warning(fwrite_args1 <- arg_reconcile(fwrite,file="iris.tsv",
-                                               .args=sharedargs),"fileEncoding")
-  expect_identical(fwrite_args0,fwrite_args1[names(fwrite_args0)])
-  expect_identical(fwrite_args0[names(fwrite_args1)],fwrite_args1)
-  
-  expect_warning(writetable_args1 <- arg_reconcile(write.table,file="iris.tsv",
-                                                   .args=sharedargs),"showProgress")
-  expect_identical(writetable_args0,writetable_args1[names(writetable_args0)])
-  expect_identical(writetable_args0[names(writetable_args1)],writetable_args1)
+test_that("valid outputs with suppressed warnings",{
+  expect_silent(fwrite_args1<-arg_reconcile(fwrite,file="iris.tsv",x=iris,
+                                               sep="\t",
+                                               fileEncoding="UTF-8",
+                                               showProgress=FALSE,
+                                               skip=2,n_max=4,
+                                               .warn = FALSE))
+  expect_identical(fwrite_args0,fwrite_args1)
+  expect_silent(writetable_args0<-arg_reconcile(write.table,file="iris.tsv",
+                                                x=iris,sep="\t",
+                                                fileEncoding="UTF-8",
+                                                showProgress=FALSE,
+                                                skip=2,n_max=4,
+                                                .warn = FALSE))
+  expect_identical(writetable_args0,writetable_args1)
+  expect_silent(fwrite_args1<-arg_reconcile(fwrite,.args=sharedargs,.warn=FALSE))
+  expect_identical(fwrite_args0,fwrite_args1)
+  expect_silent(writetable_args1<-arg_reconcile(write.table,.args=sharedargs,
+                                                .warn=FALSE))
+  expect_identical(writetable_args0,writetable_args1)
 })
 
 test_that(".remap argument remaps argument names",{
-  expect_warning(dta_args0 <- arg_reconcile(haven::write_dta,encoding="UTF-8",
-                                            showProgress=FALSE,x=iris,
-                                            compress=FALSE,file="iris.dta",
-                                            sep="\t",.remap = list(x='data',
-                                                                   file='path'))
-                 ,"sep")
-  expect_identical(dta_args0,alist(data=iris,path="iris.dta"))
-  expect_warning(sav_args0 <- arg_reconcile(haven::write_sav,encoding="UTF-8",
-                                            showProgress=FALSE,x=iris,
-                                            compress=FALSE,file="iris.sav",
-                                            sep="\t",.remap = list(x='data',
-                                                                   file='path'))
-                 ,"sep")
-  expect_identical(sav_args0,alist(compress=FALSE,data=iris,path="iris.sav"))
   expect_warning(dta_args1 <- arg_reconcile(haven::write_dta,file="iris.dta",
-                                            .args=sharedargs),"sep")
-  expect_identical(dta_args0,dta_args1[names(dta_args0)])
-  expect_identical(dta_args0[names(dta_args1)],dta_args1)
+                                            x=iris,sep="\t",
+                                            fileEncoding="UTF-8",
+                                            showProgress=FALSE,skip=2,n_max=4,
+                                            .remap = list(x='data',file='path'))
+                 ,"sep")
+  expect_identical(dta_args0,dta_args1)
   expect_warning(sav_args1 <- arg_reconcile(haven::write_sav,file="iris.sav",
-                                            .args=sharedargs),"sep")
-  expect_identical(sav_args0,sav_args1[names(sav_args0)])
-  expect_identical(sav_args0[names(sav_args1)],sav_args1)
+                                            x=iris,sep="\t",
+                                            fileEncoding="UTF-8",
+                                            showProgress=FALSE,skip=2,n_max=4,
+                                            .remap = list(x='data',file='path'))
+                 ,"sep")
+  expect_identical(sav_args0,sav_args1)
+  expect_warning(dta_args1 <- arg_reconcile(haven::write_dta,file="iris.dta",
+                                            .args=sharedargs,
+                                            .remap = list(x='data',file='path')),
+                 "sep")
+  expect_identical(dta_args0,dta_args1)
+  expect_warning(sav_args1 <- arg_reconcile(haven::write_sav,file="iris.sav",
+                                            .args=sharedargs,
+                                            .remap = list(x='data',file='path')),
+                 "sep")
+  expect_identical(sav_args0,sav_args1)
 })
 
-# TODO: ... overrides .args
-# TODO: .warn = FALSE (expand the below version)
+test_that(".docall works",{
+  expect_equivalent(iris[1:4,],
+                    arg_reconcile(fread,file="iris_ref.tsv",
+                                  .warn=FALSE,.args=sharedargs,.docall=TRUE,
+                                  .bklist = 'skip',
+                                  .remap = list(n_max='nrows')))
+  expect_equivalent(iris[1:4,],
+                    arg_reconcile(read.table,file="iris_ref.tsv",
+                                  .warn=FALSE,.args=sharedargs,.docall=TRUE,
+                                  .bklist = 'skip',header=TRUE,
+                                  .remap = list(n_max='nrows')))
+  expect_equivalent(iris[3:6,1:4],
+                    arg_reconcile(haven::read_dta,file="iris_ref.dta",
+                                  .warn=FALSE,.args=sharedargs,
+                                  .docall=TRUE)[,1:4])
+  expect_equivalent(iris[3:6,1:4],
+                    arg_reconcile(haven::read_sav,file="iris_ref.sav",
+                                  .warn=FALSE,.args=sharedargs,
+                                  .docall=TRUE)[,1:4])
+})
+
 # TODO: .docall produces results identical to corresponding direct invokation
 # TODO: do.call on *_args0 produces results identical to corresponding direct invokation
 
-test_that("silently ignore mismatched args",{
-  expect_silent(arg_reconcile(fwrite,fileEncoding="UTF-8",showProgress=FALSE,
-                               x=iris,file="iris05.tsv",sep="\t",.warn=FALSE))
-  expect_silent(arg_reconcile(write.table,fileEncoding="UTF-8",showProgress=FALSE,
-                               x=iris,file="iris06.tsv",sep="\t",.warn=FALSE))
-  expect_silent(arg_reconcile(fwrite,file="iris07.tsv",.args=sharedargs,
-                              .warn=FALSE))
-  expect_silent(arg_reconcile(write.table,file="iris08.tsv",.args=sharedargs,
-                              .warn=FALSE))
-})
-
-rm(sharedargs)
+# cleanup
+unlink(c('iris_ref.*','iris.tsv','iris.dat','iris.sav'))

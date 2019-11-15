@@ -41,7 +41,7 @@ test_that("valid outputs with suppressed warnings",{
                                                skip=2,n_max=4,
                                                .warn = FALSE))
   expect_identical(fwrite_args0,fwrite_args1)
-  expect_silent(writetable_args0<-arg_reconcile(write.table,file="iris.tsv",
+  expect_silent(writetable_args1<-arg_reconcile(write.table,file="iris.tsv",
                                                 x=iris,sep="\t",
                                                 fileEncoding="UTF-8",
                                                 showProgress=FALSE,

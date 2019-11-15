@@ -13,7 +13,7 @@ arg_reconcile(
   .bklist = c(),
   .remap = list(),
   .warn = TRUE,
-  .doerr = "default",
+  .error = "default",
   .finish = identity
 )
 }
@@ -46,14 +46,14 @@ have different names in different functions. Evaluated after
 \item{.warn}{Whether to issue a warning message (default) when invalid 
 arguments need to be discarded.}
 
-\item{.finish}{A function to run on the result before returning it. Ignored 
-if \code{.docall} is \code{FALSE}.}
-
 \item{.error}{If specified, should be the object to return in the event of
 error. This object will have the error as its 
 \code{error} attribute. If not specified an ordinary error is
 thrown with an added hint on the documentation to read for 
 troubleshooting. Ignored if \code{.docall} is \code{FALSE}.}
+
+\item{.finish}{A function to run on the result before returning it. Ignored 
+if \code{.docall} is \code{FALSE}.}
 }
 \value{
 Either a named list or the result of calling \code{fn} with the 

@@ -43,7 +43,7 @@
 #'               
 #' @export
 arg_reconcile <- function(fn,...,.args=alist(),.docall=FALSE,.wtlist=c(),
-                          .bklist=c(),.remap=list(),.warn=TRUE,.doerr='default',
+                          .bklist=c(),.remap=list(),.warn=TRUE,.error='default',
                           .finish=identity){
   # capture the formal arguments of the target function
   frmls <- formals(fn)
@@ -87,8 +87,8 @@ arg_reconcile <- function(fn,...,.args=alist(),.docall=FALSE,.wtlist=c(),
                          deparse(sys.function()),
                          ". For troubleshooting tips please see ",
                          "'?arg_troubleshooting'")
-      if(missing(.doerr)) stop(oo,errorhint) else {
-        attr(.doerr,'error') <- oo
+      if(missing(.error)) stop(oo,errorhint) else {
+        attr(.error,'error') <- oo
         return(oo)
       }
     }

@@ -40,7 +40,8 @@
 #'                     q=c(.1,.2,.02,.3,1,0,1),.remap = c(q='p'))
 #' arg_reconcile(import,file='hello.csv',file='goodbye.csv',
 #'               bla='aaa',baz='xzzz',format='csv')
-#'               
+#' 
+#' @importFrom methods is              
 #' @export
 arg_reconcile <- function(fn,...,.args=alist(),.docall=FALSE,.wtlist=c(),
                           .bklist=c(),.remap=list(),.warn=TRUE,.error='default',

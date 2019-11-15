@@ -70,5 +70,5 @@ arg_reconcile(p.adjust,bla='aaa',baz='xzzz',n=40,
                     q=c(.1,.2,.02,.3,1,0,1),.remap = c(q='p'))
 arg_reconcile(import,file='hello.csv',file='goodbye.csv',
               bla='aaa',baz='xzzz',format='csv')
-              
+
 }

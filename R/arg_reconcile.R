@@ -1,19 +1,25 @@
 #' @title Reconcile an argument list to any function signature.
+#' 
 #' @description Adapt an argument list to a function excluding arguments that 
 #'              will not be recognized by it, redundant arguments, and un-named
-#'              arguments.
+#'              arguments. 
 #'
-#' @param fn      A function to which an argument list needs to be adapted.
+#' @param fn      A function to which an argument list needs to be adapted. Use
+#'                the unquoted name of the function. If it's in a different 
+#'                package then the fully qualified unquoted name (e.g. 
+#'                \code{utils::read.table})
 #' @param ...     An arbitrary list of named arguments (unnamed ones will be 
-#'                ignored)
+#'                ignored). Arguments in \code{.args} are overridden by
+#'                arguments of the same name (if any) in \code{...}
 #' @param .args   A list or \code{alist} of named arguments, to be merged 
-#'                with \code{...}
+#'                with \code{...}. Arguments in \code{.args} are overridden by
+#'                arguments of the same name (if any) in \code{...}
 #' @param .docall If set to \code{TRUE} will not only clean up the arguments but 
 #'                also execute \code{fn} with those arguments (\code{FALSE} by
-#'                default)
+#'                default) and return the results
 #' @param .wtlist Whitelist. If not empty, only arguments named here will be 
 #'                permitted, and only if they satisfy the conditions implied by
-#'                the other arguments. Evaluated before \code{remap}.
+#'                the other arguments. Evaluated before \code{.remap}.
 #' @param .bklist Blacklist. If not empty, arguments named here will be removed 
 #'                even if they satisfy the conditions implied by the other 
 #'                arguments. Evaluated before \code{.remap}.
@@ -28,6 +34,12 @@
 #'                \code{error} attribute. If not specified an ordinary error is
 #'                thrown with an added hint on the documentation to read for 
 #'                troubleshooting. Ignored if \code{.docall} is \code{FALSE}.
+#'                The point of doing this is fault-tolerance-- if this function
+#'                is part of a lengthy process where you want to document an 
+#'                error but keep going, you can set \code{.error} to some object
+#'                of a compatible type. That object will be returned in the 
+#'                event of error and will have as its \code{"error"} attribute 
+#'                the error object.
 #' @param .finish A function to run on the result before returning it. Ignored 
 #'                if \code{.docall} is \code{FALSE}.
 #'
@@ -36,16 +48,15 @@
 #'
 #' @examples
 #' 
-#' arg_reconcile(p.adjust,bla='aaa',baz='xzzz',n=40,
-#'                     q=c(.1,.2,.02,.3,1,0,1),.remap = c(q='p'))
-#' arg_reconcile(import,file='hello.csv',file='goodbye.csv',
-#'               bla='aaa',baz='xzzz',format='csv')
+#' arg_reconcile(p.adjust, bla = "aaa", baz = "xzzz", n = 40, 
+#'                     q = c(.1, .2, .02, .3, 1, 0, 1), .remap = c(q = "p"))
+#' arg_reconcile(import, file = "hello.csv", file = "goodbye.csv", bla = "aaa", 
+#'               baz = "xzzz", format = "csv")
 #' 
-#' @importFrom methods is              
 #' @export
-arg_reconcile <- function(fn,...,.args=alist(),.docall=FALSE,.wtlist=c(),
-                          .bklist=c(),.remap=list(),.warn=TRUE,.error='default',
-                          .finish=identity){
+arg_reconcile <- function(fn, ..., .args = alist(), .docall = FALSE, 
+                          .wtlist = c(), .bklist= c(), .remap = list(), 
+                          .warn = TRUE, .error = "default", .finish = identity) {
   # capture the formal arguments of the target function
   frmls <- formals(fn)
   # capture the arguments, both freeform and an explicit list
@@ -53,43 +64,51 @@ arg_reconcile <- function(fn,...,.args=alist(),.docall=FALSE,.wtlist=c(),
   # get rid of duplicate arguments, with freeform arguments 
   dupes <- table(names(args))
   dupes <- names(dupes[dupes>1])
-  for(ii in dupes) {
+  for (ii in dupes) {
     args[which(names(args) == ii)[-1]] <- NULL
   }
-  # remove any arguments that are intended for this function 
-  args <- c(args[setdiff(names(args),names(formals(sys.function())))],.args)
-  # apply whitelist and blacklist
-  if(!missing(.wtlist)) args <- args[intersect(names(args),.wtlist)]
-  args <- args[setdiff(names(args),.bklist)]
+  # Remove any arguments that are intended for arg_reconcile() itself and merge
+  # ... with .args
+  args <- c(args[setdiff(names(args), names(formals(sys.function())))], .args)
+  # Apply whitelist and blacklist. This step also removes duplicates _between_
+  # the freeform (...) and pre-specified (.args) arguments, with ... versions
+  # taking precedence over the .args versions. This is a consequence of the 
+  # intersect() and setdiff() operations and works even if there is no blacklist
+  # nor whitelist
+  if(!missing(.wtlist)) args <- args[intersect(names(args), .wtlist)]
+  args <- args[setdiff(names(args), .bklist)]
   # if any remappings of one argument to another are specified, perform them
-  for( ii in names(.remap) ){
-    if( !.remap[[ii]] %in% names(args) && ii %in% names(args) ){
-      args[[.remap[[ii]] ]] <- args[[ii]]}
-  }
-  # remove any unnamed arguments
-  args[names(args)==""] <- NULL
-  # if the target function doesn't have '...' as an argument, check to make sure
-  # only recognized arguments get passed, optionally with a warning
-  if ( !'...' %in% names(frmls) ){
-    unused <- setdiff(names(args),names(frmls))
-    if ( length(unused)>0 ){
-      if(.warn) warning("The following arguments were ignored for ",
-                        deparse(substitute(fn)),":\n",
-                        paste(unused, collapse = ', '))
-      args <- args[intersect(names(args),names(frmls))]
+  for ( ii in names(.remap) ) {
+    if (!.remap[[ii]] %in% names(args) && ii %in% names(args) ) {
+      args[[.remap[[ii]] ]] <- args[[ii]]
     }
   }
-  # the final, cleaned-up arguments either get used on the function or returned
-  # as a list, depending on how .docall is set
-  if ( !.docall ) return(args) else{
-    oo <- try(do.call(fn,args))
-    if(!is(oo,"try-error")) return(.finish(oo)) else {
-      errorhint <- paste("\n This error was generated in ",
-                         deparse(sys.function()),
-                         ". For troubleshooting tips please see ",
-                         "'?arg_troubleshooting'")
-      if(missing(.error)) stop(oo,errorhint) else {
-        attr(.error,'error') <- oo
+  # remove any unnamed arguments
+  args[names(args) == ""] <- NULL
+  # if the target function doesn't have "..." as an argument, check to make sure
+  # only recognized arguments get passed, optionally with a warning
+  if (!"..." %in% names(frmls) ) {
+    unused <- setdiff(names(args), names(frmls))
+    if ( length(unused)>0 ){
+      if (.warn) {
+        warning("The following arguments were ignored for ", 
+                deparse(substitute(fn)), ":\n", paste(unused, collapse = ", "))
+      }
+      args <- args[intersect(names(args), names(frmls))]
+    }
+  }
+  # the final, cleaned-up arguments either get returned as a list or used on the 
+  # function, depending on how .docall is set
+  if ( !.docall ) return(args) else {
+    # run the function and return the result case
+    oo <- try(do.call(fn, args))
+    if (!methods::is(oo, "try-error")) return(.finish(oo)) else {
+      # construct an informative error... eventually there will be more 
+      # detailed info here
+      errorhint <- paste("\n This error was generated in ", 
+                         deparse(sys.function()))
+      if (missing(.error)) stop(oo, errorhint) else {
+        attr(.error, "error") <- oo
         return(oo)
       }
     }

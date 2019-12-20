@@ -18,21 +18,26 @@ arg_reconcile(
 )
 }
 \arguments{
-\item{fn}{A function to which an argument list needs to be adapted.}
+\item{fn}{A function to which an argument list needs to be adapted. Use
+the unquoted name of the function. If it's in a different 
+package then the fully qualified unquoted name (e.g. 
+\code{utils::read.table})}
 
 \item{...}{An arbitrary list of named arguments (unnamed ones will be 
-ignored)}
+ignored). Arguments in \code{.args} are overridden by
+arguments of the same name (if any) in \code{...}}
 
 \item{.args}{A list or \code{alist} of named arguments, to be merged 
-with \code{...}}
+with \code{...}. Arguments in \code{.args} are overridden by
+arguments of the same name (if any) in \code{...}}
 
 \item{.docall}{If set to \code{TRUE} will not only clean up the arguments but 
 also execute \code{fn} with those arguments (\code{FALSE} by
-default)}
+default) and return the results}
 
 \item{.wtlist}{Whitelist. If not empty, only arguments named here will be 
 permitted, and only if they satisfy the conditions implied by
-the other arguments. Evaluated before \code{remap}.}
+the other arguments. Evaluated before \code{.remap}.}
 
 \item{.bklist}{Blacklist. If not empty, arguments named here will be removed 
 even if they satisfy the conditions implied by the other 
@@ -50,7 +55,13 @@ arguments need to be discarded.}
 error. This object will have the error as its 
 \code{error} attribute. If not specified an ordinary error is
 thrown with an added hint on the documentation to read for 
-troubleshooting. Ignored if \code{.docall} is \code{FALSE}.}
+troubleshooting. Ignored if \code{.docall} is \code{FALSE}.
+The point of doing this is fault-tolerance-- if this function
+is part of a lengthy process where you want to document an 
+error but keep going, you can set \code{.error} to some object
+of a compatible type. That object will be returned in the 
+event of error and will have as its \code{"error"} attribute 
+the error object.}
 
 \item{.finish}{A function to run on the result before returning it. Ignored 
 if \code{.docall} is \code{FALSE}.}
@@ -66,9 +77,9 @@ Adapt an argument list to a function excluding arguments that
 }
 \examples{
 
-arg_reconcile(p.adjust,bla='aaa',baz='xzzz',n=40,
-                    q=c(.1,.2,.02,.3,1,0,1),.remap = c(q='p'))
-arg_reconcile(import,file='hello.csv',file='goodbye.csv',
-              bla='aaa',baz='xzzz',format='csv')
+arg_reconcile(p.adjust, bla = "aaa", baz = "xzzz", n = 40, 
+                    q = c(.1, .2, .02, .3, 1, 0, 1), .remap = c(q = "p"))
+arg_reconcile(import, file = "hello.csv", file = "goodbye.csv", bla = "aaa", 
+              baz = "xzzz", format = "csv")
 
 }

@@ -1,4 +1,34 @@
 #' @importFrom data.table fread
+import_delim_new <-  
+  function(file, which = 1, fread = TRUE, sep = "auto", 
+           header = "auto", stringsAsFactors = FALSE, data.table = FALSE, ...) {
+    if (isTRUE(fread) & !inherits(file, "connection")) {
+      arg_reconcile(data.table::fread, input=file, sep=sep, header=header,
+                    stringsAsFactors=stringsAsFactors, data.table=data.table,
+                    ..., .docall = TRUE)
+    } else {
+      if (isTRUE(fread) & inherits(file, "connection")) {
+        message("data.table::fread() does not support reading from connections. Using utils::read.table() instead.")
+      }
+      if (missing(sep) || is.null(sep)) {
+        if (inherits(file, "rio_csv")) {
+          sep <- ","
+        } else if (inherits(file, "rio_csv2")) {
+          sep <- ";"
+        } else if (inherits(file, "rio_psv")) {
+          sep <- "|"
+        } else {
+          sep <- "\t"
+        }
+      }
+      if (missing(header) || is.null(header)) {
+        header <- TRUE
+      }
+      arg_reconcile(read.table, file=file, sep=sep, header=header, 
+                    stringsAsFactors=stringsAsFactors, ..., .docall = TRUE)
+    }
+  }
+
 import_delim <-
 function(file, which = 1, fread = TRUE, sep = "auto", 
          header = "auto", stringsAsFactors = FALSE, data.table = FALSE, ...) {
